@@ -9,10 +9,10 @@
         <relativePath/>
     </parent>
     <groupId>com.mimaraslan</groupId>
-    <artifactId>devops-automation</artifactId>
+    <artifactId>devops-demo</artifactId>
     <version>1.0.0</version>
     <name>devops-automation</name>
-    <description>devops-automation</description>
+    <description>devops-demo</description>
     <properties>
         <java.version>11</java.version>
     </properties>
@@ -39,7 +39,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
-        <finalName>devops-automation</finalName>
+        <finalName>devops-demo</finalName>
     </build>
 
 </project>
