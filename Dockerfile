@@ -1,8 +1,8 @@
-FROM openjdk:11
+FROM openjdk:17
 #VOLUME /tmp
 EXPOSE 8080
-ADD target/*.jar devops-automation.jar
-ENTRYPOINT ["java","-jar","/devops-automation.jar"]
+ADD target/*.jar devops-demo.jar
+ENTRYPOINT ["java","-jar","/devops-demo.jar"]
 
 
 

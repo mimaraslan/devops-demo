@@ -1,52 +1,119 @@
 pipeline {
-    agent any
-    tools{
-        maven 'maven_3_9_4'
+
+    agent { label 'DevOps-Agent' }
+
+    tools {
+        jdk 'Java17'
+        maven 'Maven3'
     }
+
+    environment {
+	    APP_NAME = "devops-demo-pipeline"
+            RELEASE = "1.0.0"
+            DOCKER_USER = "mimaraslan"
+            DOCKER_PASS = 'dockerhub'
+            IMAGE_NAME = "${DOCKER_USER}" + "/" + "${APP_NAME}"
+            IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
+	    JENKINS_API_TOKEN = credentials("JENKINS_API_TOKEN")
+    }
+
     stages{
-        stage('Build Maven'){
-            steps{
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/mimaraslan/devops-automation']]])
-                //sh 'mvn clean install'
-                bat 'mvn clean install'
+    
+        stage("Cleanup Workspace"){
+                steps {
+                cleanWs()
+                }
+        }
+
+        stage("Checkout from SCM"){
+           steps {
+              git branch: 'main', credentialsId: 'github', url: 'https://github.com/mimaraslan/devops-demo'
+           }
+        }
+
+        stage("Build Application"){
+            steps {
+                sh "mvn clean package"
             }
         }
 
-        stage('Build docker image'){
-            steps{
-                script{
-                      //sh 'docker build -t mimaraslan/devops-automation . '
-                      bat 'docker build -t mimaraslan/devops-automation:latest . '
+       stage("Test Application"){
+           steps {
+                 sh "mvn test"
+           }
+       }
+/*
+       stage("SonarQube Analysis"){
+           steps {
+	           script {
+		           withSonarQubeEnv(credentialsId: 'jenkins-sonarqube-token') {
+                      sh "mvn sonar:sonar"
+		           }
+	           }
+           }
+       }
+
+       stage("Quality Gate"){
+           steps {
+               script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonarqube-token'
                 }
             }
+
         }
 
-        stage('Push image to Hub'){
-            steps{
-                script{
-                    withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
-                /*
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials',
-                    usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        echo "This works:  $USERNAME $PASSWORD"
-                        bat 'docker login --username $USERNAME --password-stdin $PASSWORD'
-                        bat "echo ${PASSWORD} | docker login -u ${USERNAME} --password-stdin"
-                */
-                    bat 'echo docker login -u mimaraslan -p ${dockerhubpwd}'
-                    bat 'docker push mimaraslan/devops-automation:latest'
+        stage("Build & Push Docker Image") {
+            steps {
+                script {
+                    docker.withRegistry('',DOCKER_PASS) {
+                        docker_image = docker.build "${IMAGE_NAME}"
+                    }
+
+                    docker.withRegistry('',DOCKER_PASS) {
+                        docker_image.push("${IMAGE_TAG}")
+                        docker_image.push('latest')
                     }
                 }
             }
-        }
+       }
 
-        stage('Deploy to k8s'){
-            steps{
-                script{
-                    kubernetesDeploy (configs: 'deploymentservice.yaml', kubeconfigId: 'k8sconfigpwd')
+       stage("Trivy Scan") {
+           steps {
+               script {
+	            sh ('docker run -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image mimaraslan/devops-demo-pipeline:latest --no-progress --scanners vuln  --exit-code 0 --severity HIGH,CRITICAL --format table')
+               }
+           }
+       }
+
+       stage ('Cleanup Artifacts') {
+           steps {
+               script {
+                    sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG}"
+                    sh "docker rmi ${IMAGE_NAME}:latest"
+               }
+          }
+       }
+
+       stage("Trigger CD Pipeline") {
+            steps {
+                script {
+                    sh "curl -v -k --user clouduser:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'IMAGE_TAG=${IMAGE_TAG}' 'ec2-13-232-128-192.ap-south-1.compute.amazonaws.com:8080/job/gitops-devops-demo-cd/buildWithParameters?token=gitops-token'"
                 }
             }
-        }
-
-
+       }
     }
+
+    post {
+       failure {
+             emailext body: '''${SCRIPT, template="groovy-html.template"}''',
+                      subject: "${env.JOB_NAME} - Build # ${env.BUILD_NUMBER} - Failed",
+                      mimeType: 'text/html',to: "mimaraslan0@gmail.com"
+      }
+      success {
+            emailext body: '''${SCRIPT, template="groovy-html.template"}''',
+                     subject: "${env.JOB_NAME} - Build # ${env.BUILD_NUMBER} - Successful",
+                     mimeType: 'text/html',to: "mimaraslan0@gmail.com"
+      }
+   }
+   */
 }
