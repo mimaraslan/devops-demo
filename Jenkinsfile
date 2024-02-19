@@ -77,7 +77,7 @@ pipeline {
             }
        }
 
-/*
+
        stage("Trivy Scan") {
            steps {
                script {
@@ -94,7 +94,7 @@ pipeline {
                }
           }
        }
-
+/*
        stage("Trigger CD Pipeline") {
             steps {
                 script {
