@@ -102,8 +102,8 @@ pipeline {
                 }
             }
        }
-    }
-/*
+ /*   }
+
     post {
        failure {
              emailext body: '''${SCRIPT, template="groovy-html.template"}''',
