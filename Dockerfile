@@ -9,7 +9,7 @@ ENTRYPOINT ["java","-jar","/devops-demo.jar"]
 
 
 ##JDK sürümü
-#FROM openjdk:17
+#FROM openjdk:21
 #
 ## projenin JAR dosyasinin image icindeki adresi
 #ARG JAR_FILE=target/*.jar
