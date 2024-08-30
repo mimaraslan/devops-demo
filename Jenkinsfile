@@ -1,6 +1,7 @@
 pipeline {
     //agent { label 'DevOps-Agent' }
-    agent any
+    //agent { label 'Jenkins-Agent' }
+      agent any
     
     tools {
         jdk 'Java17'
