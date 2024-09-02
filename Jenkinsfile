@@ -2,17 +2,17 @@ pipeline {
     //agent { label 'DevOps-Agent' }
     //agent { label 'Jenkins-Agent' }
       agent any
-    
+
     tools {
-        jdk 'Java17'
+        jdk 'Java21'
         maven 'Maven3'
     }
 
     stages{
         stage("Cleanup Workspace"){
-                steps {
+            steps {
                 cleanWs()
-                }
+            }
         }
 
         stage("Checkout from SCM"){
