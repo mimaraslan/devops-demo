@@ -1,6 +1,6 @@
 pipeline {
-    //agent { label 'DevOps-Agent' }
-    agent { label 'Jenkins-Agent' }
+    //agent { label 'My-DevOps-Agent' }
+    agent { label 'My-Jenkins-Agent' }
     //  agent any
 
     tools {
