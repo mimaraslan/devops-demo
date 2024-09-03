@@ -9,7 +9,7 @@ pipeline {
     }
 
     environment {
-	    APP_NAME = "devops-demo-pipeline"
+	    APP_NAME = "devops-demo-pipeline-2024"
         RELEASE = "1.0.0"
         DOCKER_USER = "mimaraslan"
         DOCKER_PASS = 'dockerhub'
