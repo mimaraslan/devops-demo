@@ -3,18 +3,18 @@ pipeline {
      // agent any
 
     tools {
-        jdk 'Java21'
+        jdk 'JDK21'
         maven 'Maven3'
     }
 
     environment {
-	    APP_NAME = "devops-demo-pipeline-2024"
+	    APP_NAME = "devops-003-pipeline-aws"
         RELEASE = "1.0"
         DOCKER_USER = "mimaraslan"
         DOCKER_PASS = 'dockerhub'
         IMAGE_NAME = "${DOCKER_USER}" + "/" + "${APP_NAME}"
         IMAGE_TAG = "${RELEASE}.${BUILD_NUMBER}"
-	  //  JENKINS_API_TOKEN = credentials("JENKINS_API_TOKEN")
+	    JENKINS_API_TOKEN = credentials("JENKINS_API_TOKEN")
     }
 
 
@@ -80,7 +80,7 @@ pipeline {
        }
 
 
-
+/*
        stage("Trivy Scan") {
            steps {
                script {
@@ -97,9 +97,16 @@ pipeline {
                }
           }
        }
+*/
 
 
-
+     stage("Trigger CD Pipeline") {
+            steps {
+                script {
+                    sh "curl -v -k --user mimaraslan:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'IMAGE_TAG=${IMAGE_TAG}' 'ec2-3-91-147-142.compute-1.amazonaws.com:8080/job/gitops-devops-demo/buildWithParameters?token=gitops-token'"
+                }
+            }
+       }
 
 
     }
